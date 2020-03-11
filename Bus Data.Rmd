@@ -1,0 +1,993 @@
+---
+title: "Bus Data"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r Sunday, echo=TRUE, fig.width=65,fig.height=60}
+
+library(ggplot2)
+library(scales)
+library(ggmap)
+library(knitr)
+library(maps)
+library(rgdal)
+library(dplyr)
+library(plyr)
+library(zoo)
+library(reshape2)
+library(chron)
+ 
+#This opens the csv files
+stops <- read.csv("stops.csv",TRUE, ",", stringsAsFactors = FALSE)
+planned_stop_times1 <- read.csv("stop_times1.csv",TRUE, ",", stringsAsFactors = FALSE )
+planned_stop_times2 <- read.csv("stop_times2.csv",TRUE, ",", stringsAsFactors = FALSE )
+planned_stop_times3 <- read.csv("stop_times3.csv",TRUE, ",", stringsAsFactors = FALSE )
+planned_stop_times4 <- read.csv("stop_times4.csv",TRUE, ",", stringsAsFactors = FALSE )
+planned_stop_times5 <- read.csv("stop_times5.csv",TRUE, ",", stringsAsFactors = FALSE )
+
+#concatenate columns stop_lat and stop_lon
+stops$Lat_Lon <- paste(stops$stop_lat, stops$stop_lon, sep="_")
+
+#concatenates the csv files into one called 'stop_times'
+planned_stop_times <- rbind(planned_stop_times1, planned_stop_times2, planned_stop_times3, planned_stop_times4, planned_stop_times5)
+
+
+#concatenate columns trip_id and stop_sequence
+planned_stop_times$trip_id_stop_seq <- paste(planned_stop_times$trip_id, planned_stop_times$stop_sequence, sep="_")
+
+
+#move trip_id_stop_seq column to 1st column
+planned_stop_times <- planned_stop_times %>% select(trip_id, everything())
+
+
+#vlookup stops dataframe to create new column in planned_stop_times dataframe called stop_name by matching the stop_id column
+planned_stop_times$stop_name <- stops$stop_name[match(planned_stop_times$stop_id, stops$stop_id)]
+
+
+#output into a csv file with a filter where stop_sequence equals 2
+write.csv(filter(planned_stop_times, stop_sequence == "2"), file = "planned_stop_times.csv")
+
+
+#This opens the csv files
+planned_stop_times <- read.csv("planned_stop_times.csv",TRUE, ",", stringsAsFactors = FALSE)
+
+
+#This opens the csv files
+lnd1 <- read.csv("lnd1 - 24092017 0700AM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd2 <- read.csv("lnd2 - 24092017 0711AM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd3 <- read.csv("lnd3 - 24092017 0720AM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd4 <- read.csv("lnd4 - 24092017 0730AM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd5 <- read.csv("lnd5 - 24092017 0740AM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd6 <- read.csv("lnd6 - 24092017 0750AM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd7 <- read.csv("lnd7 - 24092017 0804AM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd8 <- read.csv("lnd8 - 24092017 0811AM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd9 <- read.csv("lnd9 - 24092017 0820AM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd10 <- read.csv("lnd10 - 24092017 0830AM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd11 <- read.csv("lnd11 - 24092017 0840AM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd12 <- read.csv("lnd12 - 24092017 0850AM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd13 <- read.csv("lnd13 - 24092017 0901AM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd14 <- read.csv("lnd14 - 24092017 0910AM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd15 <- read.csv("lnd15 - 24092017 0920AM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd16 <- read.csv("lnd16 - 24092017 0930AM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd17 <- read.csv("lnd17 - 24092017 0940AM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd18 <- read.csv("lnd18 - 24092017 0950AM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd19 <- read.csv("lnd19 - 24092017 1000AM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd20 <- read.csv("lnd20 - 24092017 1011AM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd21 <- read.csv("lnd21 - 24092017 1021AM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd22 <- read.csv("lnd22 - 24092017 1032AM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd23 <- read.csv("lnd23 - 24092017 1041AM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd24 <- read.csv("lnd24 - 24092017 1052AM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd25 <- read.csv("lnd25 - 24092017 1102AM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd26 <- read.csv("lnd26 - 24092017 1113AM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd27 <- read.csv("lnd27 - 24092014 1121AM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd28 <- read.csv("lnd28 - 24092017 1131AM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd29 <- read.csv("lnd29 - 24092017 1141AM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd30 <- read.csv("lnd30 - 24092017 1151AM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd31 <- read.csv("lnd31 - 24092017 1201PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd32 <- read.csv("lnd32 - 24092017 1211PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd33 <- read.csv("lnd33 - 24092017 1221PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd34 <- read.csv("lnd34 - 24092017 1231PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd35 <- read.csv("lnd35 - 24092017 1241PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd36 <- read.csv("lnd36 - 24092017 1251PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd37 <- read.csv("lnd37 - 24092017 0101PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd38 <- read.csv("lnd38 - 24092017 0111PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd39 <- read.csv("lnd39 - 24092017 0121PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd40 <- read.csv("lnd40 - 24092017 0131PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd41 <- read.csv("lnd41 - 24092017 0141PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd42 <- read.csv("lnd42 - 24092017 0152PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd43 <- read.csv("lnd43 - 24092017 0201PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd44 <- read.csv("lnd44 - 24092017 0211PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd45 <- read.csv("lnd45 - 24092017 0221PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd46 <- read.csv("lnd46 - 24092017 0231PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd47 <- read.csv("lnd47 - 24092017 0241PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd48 <- read.csv("lnd48 - 24092017 0251PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd49 <- read.csv("lnd49 - 24092017 0300PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd50 <- read.csv("lnd50 - 24092017 0312PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd51 <- read.csv("lnd51 - 24092017 0322PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd52 <- read.csv("lnd52 - 24092017 0331PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd53 <- read.csv("lnd53 - 24092017 0341PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd54 <- read.csv("lnd54 - 24092017 0351PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd55 <- read.csv("lnd55 - 24092017 0401PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd56 <- read.csv("lnd56 - 24092017 0411PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd57 <- read.csv("lnd57 - 24092017 0421PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd58 <- read.csv("lnd58 - 24092017 0431PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd59 <- read.csv("lnd59 - 24092017 0441PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd60 <- read.csv("lnd60 - 24092017 0451PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd61 <- read.csv("lnd61 - 24092017 0502PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd62 <- read.csv("lnd62 - 24092017 0512PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd63 <- read.csv("lnd63 - 24092017 0521PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd64 <- read.csv("lnd64 - 24092017 0531PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd65 <- read.csv("lnd65 - 24092017 0541PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd66 <- read.csv("lnd66 - 24092017 0551PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd67 <- read.csv("lnd67 - 24092017 0601PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd68 <- read.csv("lnd68 - 24092017 0611PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd69 <- read.csv("lnd69 - 24092017 0621PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd70 <- read.csv("lnd70 - 24092017 0631PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd71 <- read.csv("lnd71 - 24092017 0641PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd72 <- read.csv("lnd72 - 24092017 0651PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd73 <- read.csv("lnd73 - 24092017 0701PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd74 <- read.csv("lnd74 - 24092017 0714PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd75 <- read.csv("lnd75 - 24092017 0721PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd76 <- read.csv("lnd76 - 24092017 0731PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd77 <- read.csv("lnd77 - 24092017 0741PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd78 <- read.csv("lnd78 - 24092017 0751PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd79 <- read.csv("lnd79 - 24092017 0801PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd80 <- read.csv("lnd80 - 24092017 0811PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd81 <- read.csv("lnd81 - 24092017 0822PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd82 <- read.csv("lnd82 - 24092017 0831PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd83 <- read.csv("lnd83 - 24092017 0841PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd84 <- read.csv("lnd84 - 24092017 0851PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd85 <- read.csv("lnd85 - 24092017 0901PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd86 <- read.csv("lnd86 - 24092017 0911PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd87 <- read.csv("lnd87 - 24092017 0921PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd88 <- read.csv("lnd88 - 24092017 0931PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd89 <- read.csv("lnd89 - 24092017 0941PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd90 <- read.csv("lnd90 - 24092017 0951PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd91 <- read.csv("lnd91 - 24092017 1001PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd92 <- read.csv("lnd92 - 24092017 1011PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd93 <- read.csv("lnd93 - 24092017 1021PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd94 <- read.csv("lnd94 - 24092017 1031PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd95 <- read.csv("lnd95 - 24092017 1041PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd96 <- read.csv("lnd96 - 24092017 1051PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+lnd97 <- read.csv("lnd97 - 24092017 1101PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+
+
+
+#Concatenates the csv files into one called 'Sunday'
+Sunday <- rbind(lnd1, lnd2, lnd3, lnd4, lnd5, lnd6, lnd7, lnd8, lnd9, lnd10, lnd11, lnd12, lnd13, lnd14, lnd15, lnd16, lnd17, lnd18, lnd19, lnd20, lnd21, lnd22, lnd23, lnd24, lnd25, lnd26, lnd27, lnd28, lnd29, lnd30, lnd31, lnd32, lnd33, lnd34, lnd35, lnd36, lnd37, lnd38, lnd39, lnd40, lnd41, lnd42, lnd43, lnd44, lnd45, lnd46, lnd47, lnd48, lnd49, lnd50, lnd51, lnd52, lnd53, lnd54, lnd55, lnd56, lnd57, lnd58, lnd59, lnd60, lnd61, lnd62, lnd63, lnd64, lnd65, lnd66, lnd67, lnd68, lnd69, lnd70, lnd71, lnd72, lnd73, lnd74, lnd75, lnd76, lnd77, lnd78, lnd79, lnd80, lnd81, lnd82, lnd83, lnd84, lnd85, lnd86, lnd87, lnd88, lnd89, lnd90, lnd91, lnd92, lnd93, lnd94, lnd95, lnd96, lnd97 )
+
+
+#convert unix timestamp column into a datetime column
+Sunday$DateTime <- format(as.POSIXct(as.numeric(as.character(Sunday$timestamp)),origin="1970-01-01",tz="GMT-10:00"))
+
+
+#extract date from DateTime column
+Sunday$Date <- format(as.POSIXct(Sunday$DateTime) ,format = "%d/%m/%Y")
+
+
+#extract time from DateTime column
+Sunday$Time <- format(as.POSIXct(Sunday$DateTime) ,format = "%H:%M:%S") 
+
+#finding the hour
+Sunday$Hour <- format(as.POSIXct(Sunday$DateTime), format = "%H")
+
+#concatenate columns lat and lon
+Sunday$Lat_Lon <- paste(Sunday$lat, Sunday$lon, sep="_")
+
+
+#output into a csv file
+write.csv(Sunday, file = "Sunday 24-09-2017.csv")
+
+#filter Sunday by route_id column
+filter(Sunday, route_id == "100-863")
+
+#base map
+SEQ <- get_map(location='Brisbane', maptype = 'roadmap', zoom = 10, source = 'google')
+
+#view the basemap
+ggmap(SEQ)
+
+#create dataframe using subset command and column names
+TableSunday <- subset(Sunday, select=c("lat","lon","Hour"))
+
+#convert data into a ggplot object which will link column names with basemap's x and y axes.
+SEQSunday <- ggmap(SEQ, extent='panel', base_layer = ggplot(TableSunday,aes(x=lon,y=lat)))
+
+#print ggplot object
+print(SEQSunday)
+
+
+#use basemap and linked data as the first layer on the density plot
+HourDensityMap <- SEQSunday + stat_density2d(aes(x=lon,y=lat,fill=..level..,alpha=..level..),bins=5,geom="polygon",data=TableSunday) + scale_fill_gradient(low="black", high="red") + facet_wrap(~Hour)
+
+#add plot labels
+HourDensityMap <- HourDensityMap + labs(title="hourly SEQ buses on the road for Sunday 24/09/2017", x="Longitude", y="Latitude", colour="24hr time")
+
+#add title theme
+HourDensityMap <- HourDensityMap + theme(plot.title=element_text(hjust=0, vjust=0.5, face=c("bold")))
+
+print(HourDensityMap)
+
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r Monday, echo=TRUE, fig.width=65,fig.height=60}
+
+#This opens the csv files
+LND1 <- read.csv("lnd1 - 25092017 0702AM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND2 <- read.csv("lnd2 - 25092017 0712AM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND3 <- read.csv("lnd3 - 25092017 0722AM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND4 <- read.csv("lnd4 - 25092017 0732AM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND5 <- read.csv("lnd5 - 25092017 0742AM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND6 <- read.csv("lnd6 - 25092017 0752AM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND7 <- read.csv("lnd7 - 25092017 0802AM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND8 <- read.csv("lnd8 - 25092017 0812AM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND9 <- read.csv("lnd9 - 25092017 0822AM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND10 <- read.csv("lnd10 - 25092017 0832AM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND11 <- read.csv("lnd11 - 25092017 0842AM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND12 <- read.csv("lnd12 - 25092017 0852AM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND13 <- read.csv("lnd13 - 25092017 0902AM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND14 <- read.csv("lnd14 - 25092017 0912AM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND15 <- read.csv("lnd15 - 25092017 0922AM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND16 <- read.csv("lnd16 - 25092017 0932AM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND17 <- read.csv("lnd17 - 25092017 0942AM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND18 <- read.csv("lnd18 - 25092017 0952AM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND19 <- read.csv("lnd19 - 25092017 1002AM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND20 <- read.csv("lnd20 - 25092017 1012AM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND21 <- read.csv("lnd21 - 25092017 1021AM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND22 <- read.csv("lnd22 - 25092017 1031AM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND23 <- read.csv("lnd23 - 25092017 1041AM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND24 <- read.csv("lnd24 - 25092017 1051AM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND25 <- read.csv("lnd25 - 25092017 1102AM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND26 <- read.csv("lnd26 - 25092017 1112AM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND27 <- read.csv("lnd27 - 25092017 1121AM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND28 <- read.csv("lnd28 - 25092017 1132AM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND29 <- read.csv("lnd29 - 25092017 1142AM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND30 <- read.csv("lnd30 - 25092017 1152AM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND31 <- read.csv("lnd31 - 25092017 1202PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND32 <- read.csv("lnd32 - 25092017 1211PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND33 <- read.csv("lnd33 - 25092017 1222PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND34 <- read.csv("lnd34 - 25092017 1232PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND35 <- read.csv("lnd35 - 25092017 1242PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND36 <- read.csv("lnd36 - 25092017 1252PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND37 <- read.csv("lnd37 - 25092017 0104PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND38 <- read.csv("lnd38 - 25092017 0112PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND39 <- read.csv("lnd39 - 25092017 0122PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND40 <- read.csv("lnd40 - 25092017 0133PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND41 <- read.csv("lnd41 - 25092017 0142PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND42 <- read.csv("lnd42 - 25092017 0152PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND43 <- read.csv("lnd43 - 25092017 0201PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND44 <- read.csv("lnd44 - 25092017 0212PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND45 <- read.csv("lnd45 - 25092017 0222PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND46 <- read.csv("lnd46 - 25092017 0235PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND47 <- read.csv("lnd47 - 25092017 0242PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND48 <- read.csv("lnd48 - 25092017 0252PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND49 <- read.csv("lnd49 - 25092017 0302PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND50 <- read.csv("lnd50 - 25092017 0312PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND51 <- read.csv("lnd51 - 25092017 0323PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND52 <- read.csv("lnd52 - 25092017 0332PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND53 <- read.csv("lnd53 - 25092017 0342PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND54 <- read.csv("lnd54 - 25092017 0353PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND55 <- read.csv("lnd55 - 25092017 0402PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND56 <- read.csv("lnd56 - 25092017 0413PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND57 <- read.csv("lnd57 - 25092017 0422PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND58 <- read.csv("lnd58 - 25092017 0432PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND59 <- read.csv("lnd59 - 25092017 0443PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND60 <- read.csv("lnd60 - 25092017 0453PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND61 <- read.csv("lnd61 - 25092017 0503PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND62 <- read.csv("lnd62 - 25092017 0513PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND63 <- read.csv("lnd63 - 25092017 0522PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND64 <- read.csv("lnd64 - 25092017 0532PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND65 <- read.csv("lnd65 - 25092017 0543PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND66 <- read.csv("lnd66 - 25092017 0553PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND67 <- read.csv("lnd67 - 25092017 0602PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND68 <- read.csv("lnd68 - 25092017 0612PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND69 <- read.csv("lnd69 - 25092017 0622PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND70 <- read.csv("lnd70 - 25092017 0631PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND71 <- read.csv("lnd71 - 25092017 0642PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND72 <- read.csv("lnd72 - 25092017 0652PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND73 <- read.csv("lnd73 - 25092017 0701PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND74 <- read.csv("lnd74 - 25092017 0711PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND75 <- read.csv("lnd75 - 25092017 0721PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND76 <- read.csv("lnd76 - 25092017 0732PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND77 <- read.csv("lnd77 - 25092017 0741PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND78 <- read.csv("lnd78 - 25092017 0751PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND79 <- read.csv("lnd79 - 25092017 0801PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND80 <- read.csv("lnd80 - 25092017 0812PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND81 <- read.csv("lnd81 - 25092017 0822PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND82 <- read.csv("lnd82 - 25092017 0833PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND83 <- read.csv("lnd83 - 25092017 0842PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND84 <- read.csv("lnd84 - 25092017 0851PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND85 <- read.csv("lnd85 - 25092017 0902PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND86 <- read.csv("lnd86 - 25092017 0911PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND87 <- read.csv("lnd87 - 25092017 0922PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND88 <- read.csv("lnd88 - 25092017 0931PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND89 <- read.csv("lnd89 - 25092017 0941PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND90 <- read.csv("lnd90 - 25092017 0951PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND91 <- read.csv("lnd91 - 25092017 1001PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND92 <- read.csv("lnd92 - 25092017 1011PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND93 <- read.csv("lnd93 - 25092017 1022PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND94 <- read.csv("lnd94 - 25092017 1031PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND95 <- read.csv("lnd95 - 25092017 1040PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND96 <- read.csv("lnd96 - 25092017 1052PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+LND97 <- read.csv("lnd97 - 25092017 1101PM.csv",TRUE, ",", stringsAsFactors = FALSE )
+
+
+
+#Concatenates the csv files into one called 'Monday'
+Monday <- rbind(LND1, LND2, LND3, LND4, LND5, LND6, LND7, LND8, LND9, LND10, LND11, LND12, LND13, LND14, LND15, LND16, LND17, LND18, LND19, LND20, LND21, LND22, LND23, LND24, LND25, LND26, LND27, LND28, LND29, LND30, LND31, LND32, LND33, LND34, LND35, LND36, LND37, LND38, LND39, LND40, LND41, LND42, LND43, LND44, LND45, LND46, LND47, LND48, LND49, LND50, LND51, LND52, LND53, LND54, LND55, LND56, LND57, LND58, LND59, LND60, LND61, LND62, LND63, LND64, LND65, LND66, LND67, LND68, LND69, LND70, LND71, LND72, LND73, LND74, LND75, LND76, LND77, LND78, LND79, LND80, LND81, LND82, LND83, LND84, LND85, LND86, LND87, LND88, LND89, LND90, LND91, LND92, LND93, LND94, LND95, LND96, LND97)
+
+
+#convert unix timestamp column into a datetime column
+Monday$DateTime <- format(as.POSIXct(as.numeric(as.character(Monday$timestamp)),origin="1970-01-01",tz="GMT-10:00"))
+
+
+#extract date from DateTime column
+Monday$Date <- format(as.POSIXct(Monday$DateTime) ,format = "%d/%m/%Y")
+
+
+#extract time from DateTime column
+Monday$Time <- format(as.POSIXct(Monday$DateTime) ,format = "%H:%M:%S") 
+
+#finding the hour
+Monday$Hour <- format(as.POSIXct(Monday$DateTime), format = "%H")
+
+#concatenate columns lat and lon
+Monday$Lat_Lon <- paste(Monday$lat, Monday$lon, sep="_")
+
+
+#output into a csv file
+write.csv(Monday, file = "Monday 25-09-2017.csv")
+
+#filter Monday by route_id column
+filter(Monday, route_id == "100-863")
+
+
+#create dataframe using subset command and column names
+TableMonday <- subset(Monday, select=c("lat","lon","Hour"))
+
+#convert data into a ggplot object which will link column names with basemap's x and y axes.
+SEQMonday <- ggmap(SEQ, extent='panel', base_layer = ggplot(TableMonday,aes(x=lon,y=lat)))
+
+#print ggplot object
+print(SEQMonday)
+
+
+#use basemap and linked data as the first layer on the density plot
+HourDensityMap <- SEQMonday + stat_density2d(aes(x=lon,y=lat,fill=..level..,alpha=..level..),bins=5,geom="polygon",data=TableMonday) + scale_fill_gradient(low="black", high="red") + facet_wrap(~Hour)
+
+#add plot labels
+HourDensityMap <- HourDensityMap + labs(title="hourly SEQ buses on the road for Monday 25/09/2017", x="Longitude", y="Latitude", colour="24hr time")
+
+#add title theme
+HourDensityMap <- HourDensityMap + theme(plot.title=element_text(hjust=0, vjust=0.5, face=c("bold")))
+
+print(HourDensityMap)
+
+```
+
+
+
+```{r Sunday-100a, echo=TRUE, fig.width=25,fig.height=15}
+
+#This opens the csv files
+RealBusTime100Sunday <- read.csv("RealBusTime100Sunday.csv",TRUE, ",", stringsAsFactors = FALSE)
+
+
+#move trip_id column to 1st column
+#RealBusTime100Sunday <- RealBusTime100Sunday %>% select(trip_id, everything())
+
+
+#concatenate columns trip_id and stop_sequence2
+RealBusTime100Sunday$trip_id_stop_seq <- paste(RealBusTime100Sunday$trip_id, RealBusTime100Sunday$stop_sequence2, sep="_")
+
+#move trip_id_stop_seq column to 1st column
+#RealBusTime100Sunday <- RealBusTime100Sunday %>% select(trip_id_stop_seq, everything())
+
+#convert unix timestamp column into a datetime column
+RealBusTime100Sunday$DateTime <- format(as.POSIXct(as.numeric(as.character(RealBusTime100Sunday$arrival_time2)),origin="1970-01-01",tz="GMT-10:00"))
+
+
+#extract date from DateTime column
+RealBusTime100Sunday$Date <- format(as.POSIXct(RealBusTime100Sunday$DateTime) ,format = "%d/%m/%Y")
+
+#extract time from DateTime column
+RealBusTime100Sunday$Actual_Time <- format(as.POSIXct(RealBusTime100Sunday$DateTime) ,format = "%H:%M:%S") 
+
+#finding the hour
+RealBusTime100Sunday$Hour <- format(as.POSIXct(RealBusTime100Sunday$DateTime), format = "%H")
+
+
+
+#output into a csv file with a filter where stop_sequence equals 2
+write.csv(filter(RealBusTime100Sunday, stop_sequence2 == "2"), file = "RealBusTime100Sunday.csv")
+
+
+#This opens the csv files
+RealBusTime100Sunday <- read.csv("RealBusTime100SundayModified.csv")
+
+
+# Basic scatter plot
+Sunday100 = ggplot(RealBusTime100Sunday, aes(departure_time, Actual_Time, color=departure_time)) +
+  geom_point(shape = 10, size = 5, show.legend = FALSE) + theme_minimal()
+print(Sunday100)
+
+
+```
+
+
+
+```{r Sunday-100b, echo=TRUE, fig.width=25,fig.height=15}
+
+#Plotting departure_time and Actual_Time as line graphs on the same plot
+Sunday100plot <- subset(RealBusTime100Sunday,select=c(Hour,departure_time,Actual_Time))
+joinsSunday100plot = data.frame(actual = Sunday100plot$Actual_Time, 
+                         departure = Sunday100plot$departure_time)
+
+ggplot(joinsSunday100plot, aes(x = departure,group=1)) + 
+  geom_line(aes(y = departure), colour="red") + 
+  geom_line(aes(y = actual), colour = "black") + 
+  ylab(label="Variation") + 
+  xlab("Time")
+
+```
+
+
+
+
+```{r Sunday-100c, echo=FALSE, fig.width=25,fig.height=15}
+RealBusTime100Sunday <- read.csv("RealBusTime100SundayModified.csv",sep=",",head=T)
+x <- cbind(RealBusTime100Sunday$departure_time)
+y <- cbind(RealBusTime100Sunday$Actual_Time)
+matplot(x,y,type="p")  
+
+```
+
+
+```{r Sunday-100d, echo=TRUE, fig.width=25,fig.height=15}
+
+###https://www.r-bloggers.com/visualising-residuals/
+###Residuals Plot
+fit <- lm(Actual ~ Planned, data = RealBusTime100Sunday)  # Fit the model
+summary(fit)  # Report the results
+
+par(mfrow = c(2, 2))  # Split the plotting panel into a 2 x 2 grid
+plot(fit)  # Plot the model information
+
+
+```
+
+
+```{r Sunday-100e, echo=TRUE, fig.width=25,fig.height=15}
+
+##https://drsimonj.svbtle.com/visualising-residuals
+##Residuals
+library(ggplot2)
+ggplot(RealBusTime100Sunday, aes(x = Planned, y = Actual)) +
+  geom_smooth(method = "lm", se = FALSE, color = "lightgrey") +  # Plot regression slope
+  geom_segment(aes(xend = Planned, yend = Actual), alpha = .05) +  # alpha to fade lines
+  geom_point() + 
+  geom_point(aes(y = Actual), shape = 1) +
+  theme_bw()  # Add theme for cleaner look
+
+```
+
+
+```{r Monday-100a, echo=TRUE, fig.width=25,fig.height=15}
+
+RealBusTime100Monday <- read.csv("Real Time Bus 100-863 25-09-2017.csv",TRUE, ",")
+
+
+#move trip_id column to 1st column
+#RealBusTime100Monday <- RealBusTime100Monday %>% select(trip_id, everything())
+
+
+#concatenate columns trip_id and stop_sequence2
+RealBusTime100Monday$trip_id_stop_seq <- paste(RealBusTime100Monday$trip_id, RealBusTime100Monday$stop_sequence2, sep="_")
+
+#move trip_id_stop_seq column to 1st column
+#RealBusTime100Monday <- RealBusTime100Monday %>% select(trip_id_stop_seq, everything())
+
+#convert unix timestamp column into a datetime column
+RealBusTime100Monday$DateTime <- format(as.POSIXct(as.numeric(as.character(RealBusTime100Monday$arrival_time2)),origin="1970-01-01",tz="GMT-10:00"))
+
+
+#extract date from DateTime column
+RealBusTime100Monday$Date <- format(as.POSIXct(RealBusTime100Monday$DateTime) ,format = "%d/%m/%Y")
+
+#extract time from DateTime column
+RealBusTime100Monday$Actual_Time <- format(as.POSIXct(RealBusTime100Monday$DateTime) ,format = "%H:%M:%S") 
+
+#finding the hour
+RealBusTime100Monday$Hour <- format(as.POSIXct(RealBusTime100Monday$DateTime), format = "%H")
+
+#output into a csv file with a filter where stop_sequence equals 2
+write.csv(filter(RealBusTime100Monday, stop_sequence2 == "2"), file = "RealBusTime100Monday.csv")
+
+
+#This opens the csv files
+RealBusTime100Monday <- read.csv("RealBusTime100MondayModified.csv")
+
+
+# Basic scatter plot
+Monday100 = ggplot(RealBusTime100Monday, aes(departure_time, Actual_Time, color=departure_time)) +
+  geom_point(shape = 10, size = 5, show.legend = FALSE) + theme_minimal()
+print(Monday100)
+
+
+```
+
+
+```{r Monday-100b, echo=TRUE, fig.width=25,fig.height=15}
+
+#Plotting departure_time and Actual_Time as line graphs on the same plot
+Monday100plot <- subset(RealBusTime100Monday,select=c(Hour,departure_time,Actual_Time))
+joinsMonday100plot = data.frame(actual = Monday100plot$Actual_Time, 
+                         departure = Monday100plot$departure_time)
+
+ggplot(joinsMonday100plot, aes(x = departure,group=1)) + 
+  geom_line(aes(y = departure), colour="red") + 
+  geom_line(aes(y = actual), colour = "black") + 
+  ylab(label="Variation") + 
+  xlab("Time")
+
+```
+
+
+```{r Monday-100c, echo=TRUE, fig.width=25,fig.height=15}
+RealBusTime100Monday <- read.csv("RealBusTime100MondayModified.csv",sep=",",head=T)
+x <- cbind(RealBusTime100Monday$departure_time)
+y <- cbind(RealBusTime100Monday$Actual_Time)
+matplot(x,y,type="p") 
+
+```
+
+
+```{r Monday-100d, echo=TRUE, fig.width=25,fig.height=15}
+
+###https://www.r-bloggers.com/visualising-residuals/
+###Residuals Plot
+fit <- lm(Actual ~ Planned, data = RealBusTime100Monday)  # Fit the model
+summary(fit)  # Report the results
+
+par(mfrow = c(2, 2))  # Split the plotting panel into a 2 x 2 grid
+plot(fit)  # Plot the model information
+
+```
+
+
+```{r Monday-100e, echo=TRUE, fig.width=25,fig.height=15}
+
+##https://drsimonj.svbtle.com/visualising-residuals
+##Residuals
+library(ggplot2)
+ggplot(RealBusTime100Monday, aes(x = Planned, y = Actual)) +
+  geom_smooth(method = "lm", se = FALSE, color = "lightgrey") +  # Plot regression slope
+  geom_segment(aes(xend = Planned, yend = Actual), alpha = .05) +  # alpha to fade lines
+  geom_point() + 
+  geom_point(aes(y = Actual), shape = 1) +
+  theme_bw()  # Add theme for cleaner look
+
+```
+
+
+
+```{r Sunday-220a, echo=TRUE, fig.width=25,fig.height=15}
+
+RealBusTime220Sunday <- read.csv("Real Time Bus 220-863 24-09-2017.csv",TRUE, ",")
+
+
+#move trip_id column to 1st column
+#RealBusTime220Sunday <- RealBusTime220Sunday %>% select(trip_id, everything())
+
+
+
+#concatenate columns trip_id and stop_sequence2
+RealBusTime220Sunday$trip_id_stop_seq <- paste(RealBusTime220Sunday$trip_id, RealBusTime220Sunday$stop_sequence2, sep="_")
+
+
+#move trip_id_stop_seq column to 1st column
+#RealBusTime220Sunday <- RealBusTime220Sunday %>% select(trip_id_stop_seq, everything())
+
+
+#convert unix timestamp column into a datetime column
+RealBusTime220Sunday$DateTime <- format(as.POSIXct(as.numeric(as.character(RealBusTime220Sunday$arrival_time2)),origin="1970-01-01",tz="GMT-10:00"))
+
+
+#extract date from DateTime column
+RealBusTime220Sunday$Date <- format(as.POSIXct(RealBusTime220Sunday$DateTime) ,format = "%d/%m/%Y")
+
+#extract time from DateTime column
+RealBusTime220Sunday$Actual_Time <- format(as.POSIXct(RealBusTime220Sunday$DateTime) ,format = "%H:%M:%S") 
+
+#output into a csv file with a filter where stop_sequence equals 2
+write.csv(filter(RealBusTime220Sunday, stop_sequence2 == "2"), file = "RealBusTime220Sunday.csv")
+
+
+#This opens the csv files
+RealBusTime220Sunday <- read.csv("RealBusTime220SundayModified.csv")
+
+
+# Basic scatter plot
+Sunday220 = ggplot(RealBusTime220Sunday, aes(departure_time, Actual_Time, color=departure_time)) +
+  geom_point(shape = 10, size = 5, show.legend = FALSE) + theme_minimal()
+print(Sunday220)
+
+
+```
+
+
+```{r Sunday-220b, echo=TRUE, fig.width=25,fig.height=15}
+
+#Plotting departure_time and Actual_Time as line graphs on the same plot
+Sunday220plot <- subset(RealBusTime220Sunday,select=c(Hour,departure_time,Actual_Time))
+joinsSunday220plot = data.frame(actual = Sunday220plot$Actual_Time, 
+                         departure = Sunday220plot$departure_time)
+
+ggplot(joinsSunday220plot, aes(x = departure,group=1)) + 
+  geom_line(aes(y = departure), colour="red") + 
+  geom_line(aes(y = actual), colour = "black") + 
+  ylab(label="Variation") + 
+  xlab("Time")
+
+```
+
+
+
+```{r Sunday-220c, echo=TRUE, fig.width=25,fig.height=15}
+
+RealBusTime220Sunday <- read.csv("RealBusTime220SundayModified.csv",sep=",",head=T)
+x <- cbind(RealBusTime220Sunday$departure_time)
+y <- cbind(RealBusTime220Sunday$Actual_Time)
+matplot(x,y,type="p") 
+
+```
+
+
+
+```{r Sunday-220d, echo=TRUE, fig.width=25,fig.height=15}
+
+###https://www.r-bloggers.com/visualising-residuals/
+###Residuals Plot
+fit <- lm(Actual ~ Planned, data = RealBusTime220Sunday)  # Fit the model
+summary(fit)  # Report the results
+
+par(mfrow = c(2, 2))  # Split the plotting panel into a 2 x 2 grid
+plot(fit)  # Plot the model information
+```
+
+
+```{r Sunday-220e, echo=TRUE, fig.width=25,fig.height=15}
+
+##https://drsimonj.svbtle.com/visualising-residuals
+##Residuals
+library(ggplot2)
+ggplot(RealBusTime220Sunday, aes(x = Planned, y = Actual)) +
+  geom_smooth(method = "lm", se = FALSE, color = "lightgrey") +  # Plot regression slope
+  geom_segment(aes(xend = Planned, yend = Actual), alpha = .05) +  # alpha to fade lines
+  geom_point() + 
+  geom_point(aes(y = Actual), shape = 1) +
+  theme_bw()  # Add theme for cleaner look
+```
+
+
+
+```{r Monday-220a, echo=TRUE, fig.width=25,fig.height=15}
+
+RealBusTime220Monday <- read.csv("Real Time Bus 220-863 25-09-2017.csv",TRUE, ",")
+
+
+#move trip_id column to 1st column
+#RealBusTime220Monday <- RealBusTime220Monday %>% select(trip_id, everything())
+
+
+
+#concatenate columns trip_id and stop_sequence2
+RealBusTime220Monday$trip_id_stop_seq <- paste(RealBusTime220Monday$trip_id, RealBusTime220Monday$stop_sequence2, sep="_")
+
+
+#move trip_id_stop_seq column to 1st column
+#RealBusTime220Monday <- RealBusTime220Monday %>% select(trip_id_stop_seq, everything())
+
+
+#convert unix timestamp column into a datetime column
+RealBusTime220Monday$DateTime <- format(as.POSIXct(as.numeric(as.character(RealBusTime220Monday$arrival_time2)),origin="1970-01-01",tz="GMT-10:00"))
+
+
+#extract date from DateTime column
+RealBusTime220Monday$Date <- format(as.POSIXct(RealBusTime220Monday$DateTime) ,format = "%d/%m/%Y")
+
+#extract time from DateTime column
+RealBusTime220Monday$Actual_Time <- format(as.POSIXct(RealBusTime220Monday$DateTime) ,format = "%H:%M:%S") 
+
+#finding the hour
+RealBusTime220Monday$Hour <- format(as.POSIXct(RealBusTime220Monday$DateTime), format = "%H")
+
+#output into a csv file with a filter where stop_sequence equals 2
+write.csv(filter(RealBusTime220Monday, stop_sequence2 == "2"), file = "RealBusTime220Monday.csv")
+
+
+#This opens the csv files
+RealBusTime220Monday <- read.csv("RealBusTime220MondayModified.csv")
+
+
+# Basic scatter plot
+Monday220 = ggplot(RealBusTime220Monday, aes(departure_time, Actual_Time, color=departure_time)) +
+  geom_point(shape = 10, size = 5, show.legend = FALSE) + theme_minimal()
+print(Monday220)
+
+```
+
+
+
+```{r Monday-220b, echo=TRUE, fig.width=25,fig.height=15}
+
+#Plotting departure_time and Actual_Time as line graphs on the same plot
+Monday220plot <- subset(RealBusTime220Monday,select=c(Hour,departure_time,Actual_Time))
+joinsMonday220plot = data.frame(actual = Monday220plot$Actual_Time, 
+                         departure = Monday220plot$departure_time)
+
+ggplot(joinsMonday220plot, aes(x = departure,group=1)) + 
+  geom_line(aes(y = departure), colour="red") + 
+  geom_line(aes(y = actual), colour = "black") + 
+  ylab(label="Variation") + 
+  xlab("Time")
+
+```
+
+
+```{r Monday-220c, echo=TRUE, fig.width=25,fig.height=15}
+
+RealBusTime220Monday <- read.csv("RealBusTime220MondayModified.csv",sep=",",head=T)
+x <- cbind(RealBusTime220Monday$departure_time)
+y <- cbind(RealBusTime220Monday$Actual_Time)
+matplot(x,y,type="p") 
+```
+
+
+```{r Monday-220d, echo=TRUE, fig.width=25,fig.height=15}
+
+###https://www.r-bloggers.com/visualising-residuals/
+###Residuals Plot
+fit <- lm(Actual ~ Planned, data = RealBusTime220Monday)  # Fit the model
+summary(fit)  # Report the results
+
+par(mfrow = c(2, 2))  # Split the plotting panel into a 2 x 2 grid
+plot(fit)  # Plot the model information
+
+```
+
+
+```{r Monday-220e, echo=TRUE, fig.width=25,fig.height=15}
+
+##https://drsimonj.svbtle.com/visualising-residuals
+##Residuals
+library(ggplot2)
+ggplot(RealBusTime220Monday, aes(x = Planned, y = Actual)) +
+  geom_smooth(method = "lm", se = FALSE, color = "lightgrey") +  # Plot regression slope
+  geom_segment(aes(xend = Planned, yend = Actual), alpha = .05) +  # alpha to fade lines
+  geom_point() + 
+  geom_point(aes(y = Actual), shape = 1) +
+  theme_bw()  # Add theme for cleaner look
+
+```
+
+
+
+```{r Sunday-470a, echo=TRUE, fig.width=25,fig.height=15}
+
+RealBusTime470Sunday <- read.csv("Real Time Bus 470-863 24-09-2017.csv",TRUE, ",")
+
+
+#move trip_id column to 1st column
+#RealBusTime470Sunday <- RealBusTime470Sunday %>% select(trip_id, everything())
+
+
+
+#concatenate columns trip_id and stop_sequence2
+RealBusTime470Sunday$trip_id_stop_seq <- paste(RealBusTime470Sunday$trip_id, RealBusTime470Sunday$stop_sequence2, sep="_")
+
+
+#move trip_id_stop_seq column to 1st column
+#RealBusTime470Sunday <- RealBusTime470Sunday %>% select(trip_id_stop_seq, everything())
+
+
+#convert unix timestamp column into a datetime column
+RealBusTime470Sunday$DateTime <- format(as.POSIXct(as.numeric(as.character(RealBusTime470Sunday$arrival_time2)),origin="1970-01-01",tz="GMT-10:00"))
+
+
+#extract date from DateTime column
+RealBusTime470Sunday$Date <- format(as.POSIXct(RealBusTime470Sunday$DateTime) ,format = "%d/%m/%Y")
+
+#extract time from DateTime column
+RealBusTime470Sunday$Actual_Time <- format(as.POSIXct(RealBusTime470Sunday$DateTime) ,format = "%H:%M:%S") 
+
+#finding the hour
+RealBusTime470Sunday$Hour <- format(as.POSIXct(RealBusTime470Sunday$DateTime), format = "%H")
+
+#output into a csv file with a filter where stop_sequence equals 2
+write.csv(filter(RealBusTime470Sunday, stop_sequence2 == "2"), file = "RealBusTime470Sunday.csv")
+
+
+#This opens the csv files
+RealBusTime470Sunday <- read.csv("RealBusTime470SundayModified.csv")
+
+
+# Basic scatter plot
+Sunday470 = ggplot(RealBusTime470Sunday, aes(departure_time, Actual_Time, color=departure_time)) +
+  geom_point(shape = 10, size = 5, show.legend = FALSE) + theme_minimal()
+print(Sunday470)
+
+
+```
+
+
+```{r Sunday-470b, echo=TRUE, fig.width=25,fig.height=15}
+
+#Plotting departure_time and Actual_Time as line graphs on the same plot
+Sunday470plot <- subset(RealBusTime470Sunday,select=c(Hour,departure_time,Actual_Time))
+joinsSunday470plot = data.frame(actual = Sunday470plot$Actual_Time, 
+                         departure = Sunday470plot$departure_time)
+
+ggplot(joinsSunday470plot, aes(x = departure,group=1)) + 
+  geom_line(aes(y = departure), colour="red") + 
+  geom_line(aes(y = actual), colour = "black") + 
+  ylab(label="Variation") + 
+  xlab("Time")
+
+```
+
+
+```{r Sunday-470c, echo=TRUE, fig.width=25,fig.height=15}
+
+RealBusTime470Sunday <- read.csv("RealBusTime470SundayModified.csv",sep=",",head=T)
+x <- cbind(RealBusTime470Sunday$departure_time)
+y <- cbind(RealBusTime470Sunday$Actual_Time)
+matplot(x,y,type="p") 
+
+```
+
+
+```{r Sunday-470d, echo=TRUE, fig.width=25,fig.height=15}
+
+###https://www.r-bloggers.com/visualising-residuals/
+###Residuals Plot
+fit <- lm(Actual ~ Planned, data = RealBusTime470Sunday)  # Fit the model
+summary(fit)  # Report the results
+
+par(mfrow = c(2, 2))  # Split the plotting panel into a 2 x 2 grid
+plot(fit)  # Plot the model information
+
+```
+
+
+```{r Sunday-470e, echo=TRUE, fig.width=25,fig.height=15}
+
+##https://drsimonj.svbtle.com/visualising-residuals
+##Residuals
+library(ggplot2)
+ggplot(RealBusTime470Sunday, aes(x = Planned, y = Actual)) +
+  geom_smooth(method = "lm", se = FALSE, color = "lightgrey") +  # Plot regression slope
+  geom_segment(aes(xend = Planned, yend = Actual), alpha = .05) +  # alpha to fade lines
+  geom_point() + 
+  geom_point(aes(y = Actual), shape = 1) +
+  theme_bw()  # Add theme for cleaner look
+
+```
+
+
+
+```{r Monday-470a, echo=TRUE, fig.width=25,fig.height=15}
+
+RealBusTime470Monday <- read.csv("Real Time Bus 470-863 25-09-2017.csv",TRUE, ",")
+
+
+#move trip_id column to 1st column
+#RealBusTime470Monday <- RealBusTime470Monday %>% select(trip_id, everything())
+
+
+
+#concatenate columns trip_id and stop_sequence2
+RealBusTime470Monday$trip_id_stop_seq <- paste(RealBusTime470Monday$trip_id, RealBusTime470Monday$stop_sequence2, sep="_")
+
+
+#move trip_id_stop_seq column to 1st column
+#RealBusTime470Monday <- RealBusTime470Monday %>% select(trip_id_stop_seq, everything())
+
+
+#convert unix timestamp column into a datetime column
+RealBusTime470Monday$DateTime <- format(as.POSIXct(as.numeric(as.character(RealBusTime470Monday$arrival_time2)),origin="1970-01-01",tz="GMT-10:00"))
+
+
+#extract date from DateTime column
+RealBusTime470Monday$Date <- format(as.POSIXct(RealBusTime470Monday$DateTime) ,format = "%d/%m/%Y")
+
+#extract time from DateTime column
+RealBusTime470Monday$Actual_Time <- format(as.POSIXct(RealBusTime470Monday$DateTime) ,format = "%H:%M:%S") 
+
+#finding the hour
+RealBusTime470Monday$Hour <- format(as.POSIXct(RealBusTime470Monday$DateTime), format = "%H")
+
+#output into a csv file with a filter where stop_sequence equals 2
+write.csv(filter(RealBusTime470Monday, stop_sequence2 == "2"), file = "RealBusTime470Monday.csv")
+
+
+#This opens the csv files
+RealBusTime470Monday <- read.csv("RealBusTime470MondayModified.csv")
+
+# Basic scatter plot
+Monday470 = ggplot(RealBusTime470Monday, aes(departure_time, Actual_Time, color=departure_time)) +
+  geom_point(shape = 10, size = 5, show.legend = FALSE) + theme_minimal()
+print(Monday470)
+
+
+```
+
+
+```{r Monday-470b, echo=TRUE, fig.width=25,fig.height=15}
+
+#Plotting departure_time and Actual_Time as line graphs on the same plot
+Monday470plot <- subset(RealBusTime470Monday,select=c(Hour,departure_time,Actual_Time))
+joinsMonday470plot = data.frame(actual = Monday470plot$Actual_Time, 
+                         departure = Monday470plot$departure_time)
+
+ggplot(joinsMonday470plot, aes(x = departure,group=1)) + 
+  geom_line(aes(y = departure), colour="red") + 
+  geom_line(aes(y = actual), colour = "black") + 
+  ylab(label="Variation") + 
+  xlab("Time")
+
+```
+ 
+ 
+ 
+```{r Monday-470c, echo=TRUE, fig.width=25,fig.height=15}
+
+RealBusTime470Monday <- read.csv("RealBusTime470MondayModified.csv",sep=",",head=T)
+x <- cbind(RealBusTime470Monday$departure_time)
+y <- cbind(RealBusTime470Monday$Actual_Time)
+matplot(x,y,type="p") 
+
+```
+
+
+```{r Monday-470d, echo=TRUE, fig.width=25,fig.height=15}
+
+###https://www.r-bloggers.com/visualising-residuals/
+###Residuals Plot
+fit <- lm(Actual ~ Planned, data = RealBusTime470Monday)  # Fit the model
+summary(fit)  # Report the results
+
+par(mfrow = c(2, 2))  # Split the plotting panel into a 2 x 2 grid
+plot(fit)  # Plot the model information
+
+```
+
+
+```{r Monday-470e, echo=TRUE, fig.width=25,fig.height=15}
+
+##https://drsimonj.svbtle.com/visualising-residuals
+##Residuals
+library(ggplot2)
+ggplot(RealBusTime470Monday, aes(x = Planned, y = Actual)) +
+  geom_smooth(method = "lm", se = FALSE, color = "lightgrey") +  # Plot regression slope
+  geom_segment(aes(xend = Planned, yend = Actual), alpha = .05) +  # alpha to fade lines
+  geom_point() + 
+  geom_point(aes(y = Actual), shape = 1) +
+  theme_bw()  # Add theme for cleaner look
+
+```
+

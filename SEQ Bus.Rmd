@@ -1,0 +1,84 @@
+---
+title: "SEQ Bus"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r bus,echo=TRUE}
+devtools::install_github("SymbolixAU/gtfsway", force=TRUE)
+library(readr)
+library(gtfsway)
+library(dplyr)
+library(plyr)
+#library(data.table)
+library(rjson)
+library(jsonlite)
+devtools::install_github("sailthru/tidyjson", force=TRUE)
+library(tidyjson)
+library(magrittr)
+library(shiny)
+library(RJSONIO)
+url <- "https://gtfsrt.api.translink.com.au/Feed/SEQ"
+
+response <- httr::GET(url,
+httr::accept_json(),
+httr::add_headers('Authorization' = ''))
+
+lst <- gtfs_tripUpdates(gtfs_realtime(response, content = "FeedMessage"))
+dput(lst, file="lst.txt")
+cat(toJSON(lst),file="lst.txt")
+
+lst <- lapply(lst, function(x) {  
+  x[sapply(x, is.null)] <- NA
+  unlist(x)})
+
+#lst <- do.call(rbind,lapply(lst, function(x) c(as.numeric(x),rep(NA,max(sapply(lst,length)-length(x)))))) 
+
+lst <- do.call(rbind, lst)
+lst <- format(lst, scientific = FALSE)
+write.table(lst, file = "lst1.txt", row.names = TRUE, col.names = TRUE,quote = FALSE,sep=",")
+#write.csv(lst,"lst1.csv")
+
+cat(toJSON(lst),file="lst2.txt")
+write.csv(lst,"lst2.csv")
+
+
+
+lnd <- gtfs_vehiclePosition(gtfs_realtime(response, content = "FeedMessage"))
+dput(lnd, file="lnd.txt")
+cat(toJSON(lnd), file="lnd.txt")
+# Now you have a list of data frames, connect them together in one single dataframe
+lnd <- do.call(rbind, lnd)
+# Make column names nicer, remove row names
+colnames(df) <- names(lnd[[1]][[1]])
+#rownames(df) <- NULL
+lnd <- format(lnd, scientific = FALSE)
+write.table(lnd, file = "lnd.txt", row.names = TRUE, col.names = TRUE,quote = FALSE,sep=",")
+dput(lnd[1:7, ])
+write.csv(lnd,"lnd.csv")
+
+
+
+
+feed <- gtfs_realtime(response, content = "FeedMessage")
+FeedMessage <- gtfs_realtime(response)
+ltt <- gtfs_tripUpdates(FeedMessage) 
+
+#ltt[34]
+dput(ltt, file="ltt.txt")
+
+
+
+```
+
+
+
